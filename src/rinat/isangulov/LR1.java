@@ -1,40 +1,55 @@
 package rinat.isangulov;
 
+import java.io.*;
+import java.util.*;
+
 /**
  * @author ст.гр. БПО-18-01 Исангулов Ринат
  */
-
-/*
-Вариант 8
-Коэффициенты системы A=(ai,j)n,n      | Свободные члены B=(bi)n
- 4.2 -1.9  3.3                        | 2.9
- 2.8  4.1  5.7                        | 0.3
- 5.8 -1.5 -3.0                        | -5.8
- */
-
 public class LR1 {
 
+    public static final int N = 3;
+    public static final String PATH = "C:\\Users\\risangulov\\IdeaProjects\\KM\\src\\rinat\\isangulov\\lr1.txt";
+    public static final String AUTHOR = "Выполнил ст.гр. БПО-18-01 Исангулов Ринат";
+
+
     public static void main(String[] args) {
-        double[][] a = new double[3][3];
-        double[] b = new double[3];
+        double[][] a = new double[N][N];
+        double[] b = new double[N];
 
-        a[0][0] = 4.2;
-        a[0][1] = -1.9;
-        a[0][2] = 3.3;
-
-        a[1][0] = 2.8;
-        a[1][1] = 4.1;
-        a[1][2] = 5.7;
-
-        a[2][0] = 5.8;
-        a[2][1] = -1.5;
-        a[2][2] = -3.0;
-
-        b[0] = 2.9;
-        b[1] = 0.3;
-        b[2] = -5.8;
-
+        readAndPrint(a, b);
         methodKramer(a, b);
+
+        readAndPrint(a, b);
+        methodGauss(a, b);
+
+        readAndPrint(a, b);
+        methodMatrix(a, b);
+    }
+
+    private static void readAndPrint(double[][] a, double[] b) {
+        String underLine = "_____________________________";
+        System.out.println("\n" + AUTHOR);
+        System.out.println(underLine + "\nИсходные данные\n" + underLine);
+        try {
+            Scanner sc = new Scanner(new File(PATH));
+            for (int i = 0; i < N; i++) {
+                for (int j = 0; j < N + 1; j++) {
+                    if (j == N) {
+                        b[i] = sc.nextDouble();
+                        System.out.printf("| %.1f \t", b[i]);
+                    } else {
+                        a[i][j] = sc.nextDouble();
+                        System.out.printf("%.1f \t", a[i][j]);
+                    }
+                }
+                System.out.println();
+            }
+            sc.close();
+            System.out.println(underLine);
+        } catch (FileNotFoundException | InputMismatchException e) {
+            e.printStackTrace();
+        }
     }
 
     static double getDelta(double[][] a) {
@@ -43,7 +58,7 @@ public class LR1 {
         double[] deltaElements;
 
         while (ignoreRow < 3) {
-            deltaElements = getDeltaElements(a,ignoreRow);
+            deltaElements = getDeltaElements(a, ignoreRow, 0);
             partDelt = a[0][ignoreRow] * (deltaElements[0] * deltaElements[3] - deltaElements[1] * deltaElements[2]);
             total = (ignoreRow != 1) ? total + partDelt : total - partDelt;
             ignoreRow++;
@@ -51,14 +66,16 @@ public class LR1 {
         return total;
     }
 
-    private static double[] getDeltaElements(double [][] a, int ignoreRow) {
+    private static double[] getDeltaElements(double[][] a, int ignoreRow, int ignoreColumn) {
         int count = 0;
         double[] elements = new double[4];
-        for (int i = 1; i < 3; i++) {
-            for (int j = 0; j < 3; j++) {
-                if (j != ignoreRow) {
-                    elements[count] = a[i][j];
-                    count++;
+        for (int i = 0; i < N; i++) {
+            if (i != ignoreColumn) {
+                for (int j = 0; j < N; j++) {
+                    if (j != ignoreRow) {
+                        elements[count] = a[i][j];
+                        count++;
+                    }
                 }
             }
         }
@@ -66,68 +83,235 @@ public class LR1 {
     }
 
     static double[][] replaceWithVector(double[][] a, double[] v, int replaceColumn) {
+        double[][] arr = new double[N][N];
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
                 if (j == replaceColumn) {
-                    a[i][j] = v[i];
+                    arr[i][j] = v[i];
+                } else {
+                    arr[i][j] = a[i][j];
                 }
             }
         }
-        return a;
+        return arr;
     }
 
     private static double getX(double Dn, double D) {
         return Dn / D;
     }
 
-    private static double checkY(double[][] a, double[] x, double[] b, int i) {
-        double y = 0;
-        for (int j = 0; j < 3; j++) {
-            y = a[i][j] * x[i];
+    private static void check(double[] x) {
+        double[][] a = getA();
+        double t;
+        double sum = 0;
+
+        System.out.println("\nПроверка:\n");
+        for (int i = 0; i < N; i++) {
+            for (int j = 0; j < N; j++) {
+                t = a[i][j] * x[j];
+                sum += t;
+                System.out.print("(" + a[i][j] + " * " + x[j] + ")");
+                if (j < N - 1) {
+                    System.out.print(" + ");
+                }
+            }
+            System.out.print(" = " + sum);
+            System.out.println();
+            sum = 0;
         }
-        y -= b[i];
-        return y;
     }
 
-    static void methodKramer(double[][] a, double[] b) {
-        System.out.println("1. Метод Крамера");
+    private static void printAnswers(double[] x) {
+        System.out.println("\nОтветы:\n");
+        for (int i = 0; i < N; i++) {
+            System.out.println("x[" + i + "] = " + x[i]);
+        }
+    }
 
+    private static double[] getB() {
+        double[] b = new double[N];
+        try {
+            Scanner sc = new Scanner(new File(PATH));
+            for (int i = 0; i < N; i++) {
+                for (int j = 0; j < N + 1; j++) {
+                    if (j == N) {
+                        b[i] = sc.nextDouble();
+                    } else {
+                        sc.nextDouble();
+                    }
+                }
+            }
+            sc.close();
+        } catch (FileNotFoundException | InputMismatchException e) {
+            e.printStackTrace();
+        }
+        return b;
+    }
+
+    private static double[][] getA() {
+        double[][] a = new double[N][N];
+        try {
+            Scanner sc = new Scanner(new File(PATH));
+            for (int i = 0; i < N; i++) {
+                for (int j = 0; j < N + 1; j++) {
+                    if (j == N) {
+                        sc.nextDouble();
+                    } else {
+                        a[i][j] = sc.nextDouble();
+                    }
+                }
+            }
+            sc.close();
+        } catch (FileNotFoundException | InputMismatchException e) {
+            e.printStackTrace();
+        }
+        return a;
+    }
+
+    private static void printB() {
+        double[] b = getB();
+        for (int i = 0; i < N; i++) {
+            System.out.println("b[" + i + "] = " + b[i]);
+        }
+    }
+
+    private static void printArray(double[] m, String str) {
+        for (int i = 0; i < N; i++) {
+            System.out.println(str + "[" + i + "] = " + m[i]);
+        }
+    }
+
+    private static void printTwoDimensArray(double[][] m) {
+        for (int i = 0; i < N; i++) {
+            for (int j = 0; j < N; j++) {
+                System.out.printf("%.1f \t", m[i][j]);
+            }
+            System.out.println();
+        }
+    }
+
+    /* Выполнил ст.гр. БПО-18-01 Исангулов Ринат */
+    static void methodKramer(double[][] a, double[] b) {
+        System.out.println("\n1. Метод Крамера\n");
+
+        double[] x = new double[N];
         double D = getDelta(a);
 
         double D1 = getDelta(replaceWithVector(a, b, 0));
-        double x1 = getX(D1, D);
+        x[0] = getX(D1, D);
 
         double D2 = getDelta(replaceWithVector(a, b, 1));
-        double x2 = getX(D2, D);
+        x[1] = getX(D2, D);
 
         double D3 = getDelta(replaceWithVector(a, b, 2));
-        double x3 = getX(D3, D);
+        x[2] = getX(D3, D);
 
-        double[] x = new double[3];
-        x[0] = x1;
-        x[1] = x2;
-        x[2] = x3;
-
-        double y1 = checkY(a, x, b, 0);
-        double y2 = checkY(a, x, b, 1);
-        double y3 = checkY(a, x, b, 2);
-
-        System.out.println("D = " + D);
-        System.out.println("D1 = " + D1);
-        System.out.println("D2 = " + D2);
-        System.out.println("D3 = " + D3);
-
-        System.out.println("x1 = " + x1);
-        System.out.println("x2 = " + x2);
-        System.out.println("x3 = " + x3);
-
-        System.out.println("y1 = " + y1);
-        System.out.println("y2 = " + y2);
-        System.out.println("y3 = " + y3);
+        printAnswers(x);
+        check(x);
+        printB();
     }
 
-    // 2.Метод Гаусса
-    // 3.Матричный метод
+    /* Выполнил ст.гр. БПО-18-01 Исангулов Ринат */
+    static void methodGauss(double[][] a, double[] b) {
+        System.out.println("\n2. Метод Гаусса\n");
+
+        for (int k = 0; k < N; k++) {
+            int maxIndex = getMaxIndex(k, a);
+
+            double[] t = a[k];
+            a[k] = a[maxIndex];
+            a[maxIndex] = t;
+
+            double tt = b[k];
+            b[k] = b[maxIndex];
+            b[maxIndex] = tt;
+
+            for (int i = k + 1; i < N; i++) {
+                double q = a[i][k] / a[k][k];
+                b[i] -= q * b[k];
+
+                for (int j = k; j < N; j++) {
+                    a[i][j] -= q * a[k][j];
+                }
+            }
+        }
+
+        double[] x = reversePass(a, b);
+
+        printAnswers(x);
+        check(x);
+        printB();
+
+    }
+
+    private static int getMaxIndex(int k, double[][] a) {
+        int maxIndex = k;
+        double maxValue = Double.MIN_VALUE;
+
+        for (int i = k + 1; i < N; i++) {
+            double maxLineValue = Arrays.stream(a[i]).max().getAsDouble();
+            if (maxLineValue > maxValue) {
+                maxIndex = i;
+                maxValue = maxLineValue;
+            }
+        }
+        return maxIndex;
+    }
+
+    private static double[] reversePass(double[][] a, double[] b) {
+        double[] x = new double[N];
+        for (int i = N - 1; i >= 0; i--) {
+            double sum = 0.0;
+            for (int j = i + 1; j < N; j++) {
+                sum += a[i][j] * x[j];
+            }
+            x[i] = (b[i] - sum) / a[i][i];
+        }
+        return x;
+    }
+
+    /* Выполнил ст.гр. БПО-18-01 Исангулов Ринат */
+    static void methodMatrix(double[][] a, double[] b) {
+        System.out.println("\n3.Матричный метод\n");
+
+        double[] x = new double[N];
+
+        //определить матрицы
+        double D = getDelta(a);
+
+        //находим матрицу алгебраических дополнений
+        double[][] m = getMatrixOfAlgebraicAdditions(a);
+        printTwoDimensArray(m);
+
+        //обратная матрица
+        double[][] inv = new double[N][N];
+        for (int i = 0; i < N; i++) {
+            for (int j = 0; j < N; j++) {
+                inv[i][j] = 1 / D * m[i][j];
+                x[i] += inv[i][j] * b[j];
+            }
+        }
+        printAnswers(x);
+        check(x);
+        printB();
+    }
+
+    public static double[][] getMatrixOfAlgebraicAdditions(double[][] a) {
+        double[][] m = new double[N][N];
+        double[] deltaElements;
+        for (int i = 0; i < N; i++) {
+            for (int j = 0; j < N; j++) {
+                deltaElements = getDeltaElements(a, i, j);
+                m[i][j] = deltaElements[0] * deltaElements[3] - deltaElements[1] * deltaElements[2];
+                if ((i == 0 && j == 1) || (i == 1 && j == 0) || (i == 1 && j == 2) || (i == 2 && j == 1)) {
+                    m[i][j] *= -1;
+                }
+            }
+        }
+        return m;
+    }
+
+
     // 4.Метод Якоби
     // 5.Метод Зейделя
     // 6.Метод релаксации
