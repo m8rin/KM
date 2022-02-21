@@ -7,11 +7,12 @@ public final class Tuple2<A, B> {
         this.v1 = v1;
         this.v2 = v2;
     }
-    public A getA() {
+
+    public A get1() {
         return v1;
     }
 
-    public B getB() {
+    public B get2() {
         return v2;
     }
 }

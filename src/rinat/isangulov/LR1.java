@@ -8,10 +8,10 @@ import java.util.*;
  */
 public class LR1 {
 
-    public static final int N = 3;
-    public static final String PATH = "C:\\Users\\risangulov\\IdeaProjects\\KM\\src\\rinat\\isangulov\\lr1.txt";
-    public static final String AUTHOR = "Выполнил ст.гр. БПО-18-01 Исангулов Ринат";
-
+    static final int N = 3;
+    static final double E = 0.00001;
+    static final String PATH = "C:\\Users\\risangulov\\IdeaProjects\\KM\\src\\rinat\\isangulov\\lr1.txt";
+    static final String AUTHOR = "Выполнил ст.гр. БПО-18-01 Исангулов Ринат";
 
     public static void main(String[] args) {
         double[][] a = new double[N][N];
@@ -25,9 +25,15 @@ public class LR1 {
 
         readAndPrint(a, b);
         methodMatrix(a, b);
+
+        readAndPrint(a, b);
+        methodJacobi(a, b);
+
+        readAndPrint(a, b);
+        methodZeid(a, b);
     }
 
-    private static void readAndPrint(double[][] a, double[] b) {
+    static void readAndPrint(double[][] a, double[] b) {
         String underLine = "_____________________________";
         System.out.println("\n" + AUTHOR);
         System.out.println(underLine + "\nИсходные данные\n" + underLine);
@@ -66,7 +72,7 @@ public class LR1 {
         return total;
     }
 
-    private static double[] getDeltaElements(double[][] a, int ignoreRow, int ignoreColumn) {
+    static double[] getDeltaElements(double[][] a, int ignoreRow, int ignoreColumn) {
         int count = 0;
         double[] elements = new double[4];
         for (int i = 0; i < N; i++) {
@@ -96,11 +102,11 @@ public class LR1 {
         return arr;
     }
 
-    private static double getX(double Dn, double D) {
+    static double getX(double Dn, double D) {
         return Dn / D;
     }
 
-    private static void check(double[] x) {
+    static void check(double[] x) {
         double[][] a = getA();
         double t;
         double sum = 0;
@@ -121,14 +127,14 @@ public class LR1 {
         }
     }
 
-    private static void printAnswers(double[] x) {
+    static void printAnswers(double[] x) {
         System.out.println("\nОтветы:\n");
         for (int i = 0; i < N; i++) {
             System.out.println("x[" + i + "] = " + x[i]);
         }
     }
 
-    private static double[] getB() {
+    static double[] getB() {
         double[] b = new double[N];
         try {
             Scanner sc = new Scanner(new File(PATH));
@@ -148,7 +154,7 @@ public class LR1 {
         return b;
     }
 
-    private static double[][] getA() {
+    static double[][] getA() {
         double[][] a = new double[N][N];
         try {
             Scanner sc = new Scanner(new File(PATH));
@@ -168,23 +174,23 @@ public class LR1 {
         return a;
     }
 
-    private static void printB() {
+    static void printB() {
         double[] b = getB();
         for (int i = 0; i < N; i++) {
             System.out.println("b[" + i + "] = " + b[i]);
         }
     }
 
-    private static void printArray(double[] m, String str) {
+    static void printArray(double[] m, String str) {
         for (int i = 0; i < N; i++) {
             System.out.println(str + "[" + i + "] = " + m[i]);
         }
     }
 
-    private static void printTwoDimensArray(double[][] m) {
+    static void printTwoDimensArray(double[][] m) {
         for (int i = 0; i < N; i++) {
             for (int j = 0; j < N; j++) {
-                System.out.printf("%.1f \t", m[i][j]);
+                System.out.printf("%.5f \t", m[i][j]);
             }
             System.out.println();
         }
@@ -244,7 +250,7 @@ public class LR1 {
 
     }
 
-    private static int getMaxIndex(int k, double[][] a) {
+    static int getMaxIndex(int k, double[][] a) {
         int maxIndex = k;
         double maxValue = Double.MIN_VALUE;
 
@@ -258,7 +264,7 @@ public class LR1 {
         return maxIndex;
     }
 
-    private static double[] reversePass(double[][] a, double[] b) {
+    static double[] reversePass(double[][] a, double[] b) {
         double[] x = new double[N];
         for (int i = N - 1; i >= 0; i--) {
             double sum = 0.0;
@@ -274,29 +280,22 @@ public class LR1 {
     static void methodMatrix(double[][] a, double[] b) {
         System.out.println("\n3.Матричный метод\n");
 
-        double[] x = new double[N];
-
-        //определить матрицы
         double D = getDelta(a);
 
-        //находим матрицу алгебраических дополнений
         double[][] m = getMatrixOfAlgebraicAdditions(a);
-        printTwoDimensArray(m);
+        //printTwoDimensArray(m);
 
-        //обратная матрица
-        double[][] inv = new double[N][N];
-        for (int i = 0; i < N; i++) {
-            for (int j = 0; j < N; j++) {
-                inv[i][j] = 1 / D * m[i][j];
-                x[i] += inv[i][j] * b[j];
-            }
-        }
+        double[][] inv = getInverseMatrix(m, D);
+        System.out.println("\nОбратная матрица:\n");
+        printTwoDimensArray(inv);
+
+        double[] x = getX(inv, b);
         printAnswers(x);
         check(x);
         printB();
     }
 
-    public static double[][] getMatrixOfAlgebraicAdditions(double[][] a) {
+    static double[][] getMatrixOfAlgebraicAdditions(double[][] a) {
         double[][] m = new double[N][N];
         double[] deltaElements;
         for (int i = 0; i < N; i++) {
@@ -311,8 +310,182 @@ public class LR1 {
         return m;
     }
 
+    static double[][] getInverseMatrix(double[][] a, double delt) {
+        double[][] inv = new double[N][N];
+        for (int i = 0; i < N; i++) {
+            for (int j = 0; j < N; j++) {
+                inv[i][j] = (double) 1 / delt * a[i][j];
+            }
+        }
+        return inv;
+    }
 
-    // 4.Метод Якоби
-    // 5.Метод Зейделя
-    // 6.Метод релаксации
+    static double[] getX(double[][] inv, double[] b) {
+        double[] x = new double[N];
+        for (int i = 0; i < N; i++) {
+            for (int j = 0; j < N; j++) {
+                x[i] += inv[i][j] * b[j];
+            }
+        }
+        return x;
+    }
+
+    static boolean checkApplicability(double[][] arr) {
+        for (int i = 0; i < N; i++) {
+            double sum = 0;
+            for (int j = 0; j < N; j++) {
+                sum += Math.abs(arr[i][j]);
+            }
+            if (sum >= 1) {
+                System.out.println("Невозможно применить метод!");
+                return false;
+            }
+        }
+        return true;
+    }
+
+    static Tuple2<double[][], double[]> getC(double[][] a, double[] b) {
+        double[] d = new double[N];
+        double[][] c = new double[N][N];
+
+        for (int i = 0; i < N; i++) {
+            for (int j = 0; j < N; j++) {
+                if (i == j) {
+                    c[i][j] = 0;
+                    continue;
+                }
+                c[i][j] = -a[i][j] / a[i][i];
+            }
+            d[i] = b[i] / a[i][i];
+        }
+        return new Tuple2(c, d);
+    }
+
+    static double getE(double[] eps) {
+        double e = 0;
+        for (int i = 0; i < N; i++) {
+            if (eps[i] > e) {
+                e = eps[i];
+            }
+        }
+        return e;
+    }
+
+    /* Выполнил ст.гр. БПО-18-01 Исангулов Ринат */
+    static void methodJacobi(double[][] a, double[] b) {
+        System.out.println("\n4.Метод Якоби\n");
+
+        Tuple2 tuple = getC(a, b);
+        double[][] c = (double[][]) tuple.get1();
+        double[] d = (double[]) tuple.get2();
+        printTwoDimensArray(c);
+
+        if (checkApplicability(c)) {
+            double[] x = Arrays.copyOf(d, N);
+            double[] x1 = new double[N];
+            double[] eps = new double[N];
+            double e = 1;
+            int count = 1;
+
+            while (e > E) {
+                System.out.print(count + "\t");
+                for (int i = 0; i < N; i++) {
+                    x1[i] = 0;
+                    for (int j = 0; j < N; j++) {
+                        x1[i] += c[i][j] * x[j];
+                    }
+                    eps[i] = Math.abs(x1[i] + d[i] - x[i]);
+                    x[i] = x1[i] + d[i];
+                }
+                e = getE(eps);
+                count++;
+            }
+            printAnswers(x);
+            check(x);
+            printB();
+        }
+    }
+
+    /* Выполнил ст.гр. БПО-18-01 Исангулов Ринат */
+    static void methodZeid(double[][] a, double[] b) {
+        System.out.println("\n5.Метод Зейделя\n");
+
+        Tuple2 tuple = getC(a, b);
+        double[][] c = (double[][]) tuple.get1();
+        double[] d = (double[]) tuple.get2();
+        printTwoDimensArray(c);
+
+        if (checkApplicability(c)) {
+            double[] x = Arrays.copyOf(d, N);
+            double[] x1 = new double[N];
+            double[] x2 = new double[N];
+            double[] eps = new double[N];
+            double e = 1;
+            int count = 1;
+
+            while (e > E) {
+                System.out.print(count + "\t");
+                for (int i = 0; i < N; i++) {
+                    x1[i] = 0;
+                    for (int j = 0; j <= i - 1; j++) {
+                        x1[i] += c[i][j] * x[j];
+                    }
+                    x2[i] = 0;
+                    for (int j = i + 1; j < N; j++) {
+                        x2[i] += c[i][j] * x[j];
+                    }
+                    eps[i] = Math.abs(x1[i] + x2[i] + d[i] - x[i]);
+                    x[i] = x1[i] + x[i] + d[i];
+                }
+                e = getE(eps);
+                count++;
+            }
+            printAnswers(x);
+            check(x);
+            printB();
+        }
+    }
+
+    /* Выполнил ст.гр. БПО-18-01 Исангулов Ринат */
+    static void methodRelaxation(double[][] a, double[] b) {
+        System.out.println("\n6.Метод релаксации\n");
+
+        Tuple2 tuple = getC(a, b);
+        double[][] c = (double[][]) tuple.get1();
+        double[] d = (double[]) tuple.get2();
+        printTwoDimensArray(c);
+
+        if (checkApplicability(c)) {
+            double[] x = Arrays.copyOf(d, N);
+            double[] x1 = Arrays.copyOf(d, N);
+            double[] x2 = new double[N];
+            double[] z = Arrays.copyOf(d, N);
+            double[] eps = new double[N];
+            double e = 1, w = 0.5, z0;
+            int count = 1;
+
+            while (e > E) {
+                System.out.print(count + "\t");
+                for (int i = 0; i < N; i++) {
+                    x1[i] = 0;
+                    for (int j = 0; j <= i - 1; j++) {
+                        x1[i] += c[i][j] * x[j];
+                    }
+                    x2[i] = 0;
+                    for (int j = i + 1; j < N; j++) {
+                        x2[i] += c[i][j] * z[j];
+                    }
+                    z0 = z[i];
+                    x2[i] = x1[i] + x2[i] + d[i];
+                    x[i] = x2[i] + (w - 1) * (z[i] - z0);
+                    eps[i] = Math.abs(x[i] - z0);
+                }
+                e = getE(eps);
+                count++;
+            }
+            printAnswers(x);
+            check(x);
+            printB();
+        }
+    }
 }
