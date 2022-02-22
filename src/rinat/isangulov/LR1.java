@@ -9,7 +9,7 @@ import java.util.*;
 public class LR1 {
 
     static final int N = 3;
-    static final double E = 0.00001;
+    static final double E = 0.000001;
     static final String PATH = "C:\\Users\\risangulov\\IdeaProjects\\KM\\src\\rinat\\isangulov\\lr1.txt";
     static final String AUTHOR = "Выполнил ст.гр. БПО-18-01 Исангулов Ринат";
 
@@ -17,20 +17,16 @@ public class LR1 {
         double[][] a = new double[N][N];
         double[] b = new double[N];
 
+        System.out.println("Лабораторная работа №1");
+        System.out.println("\n" + AUTHOR);
+
         readAndPrint(a, b);
         methodKramer(a, b);
-
-        readAndPrint(a, b);
-        methodGauss(a, b);
-
-        readAndPrint(a, b);
-        methodMatrix(a, b);
-
-        readAndPrint(a, b);
-        methodJacobi(a, b);
-
-        readAndPrint(a, b);
-        methodZeid(a, b);
+        //methodGauss(a, b);
+        //methodMatrix(a, b);
+        //methodJacobi(a, b);
+        //methodZeid(a, b);
+        //methodRelaxation(a,b);
     }
 
     static void readAndPrint(double[][] a, double[] b) {
@@ -106,34 +102,6 @@ public class LR1 {
         return Dn / D;
     }
 
-    static void check(double[] x) {
-        double[][] a = getA();
-        double t;
-        double sum = 0;
-
-        System.out.println("\nПроверка:\n");
-        for (int i = 0; i < N; i++) {
-            for (int j = 0; j < N; j++) {
-                t = a[i][j] * x[j];
-                sum += t;
-                System.out.print("(" + a[i][j] + " * " + x[j] + ")");
-                if (j < N - 1) {
-                    System.out.print(" + ");
-                }
-            }
-            System.out.print(" = " + sum);
-            System.out.println();
-            sum = 0;
-        }
-    }
-
-    static void printAnswers(double[] x) {
-        System.out.println("\nОтветы:\n");
-        for (int i = 0; i < N; i++) {
-            System.out.println("x[" + i + "] = " + x[i]);
-        }
-    }
-
     static double[] getB() {
         double[] b = new double[N];
         try {
@@ -172,6 +140,34 @@ public class LR1 {
             e.printStackTrace();
         }
         return a;
+    }
+
+    static void check(double[] x) {
+        double[][] a = getA();
+        double t;
+        double sum = 0;
+
+        System.out.println("\nПроверка:\n");
+        for (int i = 0; i < N; i++) {
+            for (int j = 0; j < N; j++) {
+                t = a[i][j] * x[j];
+                sum += t;
+                System.out.print("(" + a[i][j] + " * " + x[j] + ")");
+                if (j < N - 1) {
+                    System.out.print(" + ");
+                }
+            }
+            System.out.print(" = " + sum);
+            System.out.println();
+            sum = 0;
+        }
+    }
+
+    static void printAnswers(double[] x) {
+        System.out.println("\nОтветы:\n");
+        for (int i = 0; i < N; i++) {
+            System.out.println("x[" + i + "] = " + x[i]);
+        }
     }
 
     static void printB() {
